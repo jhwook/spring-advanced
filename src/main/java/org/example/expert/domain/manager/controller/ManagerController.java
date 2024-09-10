@@ -20,7 +20,6 @@ import java.util.List;
 public class ManagerController {
 
     private final ManagerService managerService;
-    private final JwtUtil jwtUtil;
 
     @PostMapping("/todos/{todoId}/managers")
     public ResponseEntity<ManagerSaveResponse> saveManager(
@@ -42,8 +41,6 @@ public class ManagerController {
             @PathVariable long todoId,
             @PathVariable long managerId
     ) {
-        Claims claims = jwtUtil.extractClaims(bearerToken.substring(7));
-        long userId = Long.parseLong(claims.getSubject());
-        managerService.deleteManager(userId, todoId, managerId);
+        managerService.deleteManager(bearerToken, todoId, managerId);
     }
 }
