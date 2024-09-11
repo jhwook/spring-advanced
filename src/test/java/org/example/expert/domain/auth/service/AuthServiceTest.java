@@ -99,6 +99,8 @@ public class AuthServiceTest {
         // given
         SigninRequest signinRequest = new SigninRequest("test@email.com", "testPassword");
 
+        given(userRepository.findByEmail(signinRequest.getEmail())).willReturn(Optional.empty());
+
         // when
         InvalidRequestException exception = assertThrows(InvalidRequestException.class,
                 () -> authService.signin(signinRequest));
