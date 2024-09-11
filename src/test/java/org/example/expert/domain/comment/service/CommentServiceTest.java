@@ -8,6 +8,7 @@ import org.example.expert.domain.comment.repository.CommentRepository;
 import org.example.expert.domain.common.dto.AuthUser;
 import org.example.expert.domain.common.exception.InvalidRequestException;
 import org.example.expert.domain.common.exception.ServerException;
+import org.example.expert.domain.manager.entity.Manager;
 import org.example.expert.domain.todo.entity.Todo;
 import org.example.expert.domain.todo.repository.TodoRepository;
 import org.example.expert.domain.user.entity.User;
@@ -26,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CommentServiceTest {
@@ -58,21 +60,51 @@ class CommentServiceTest {
     @Test
     public void comment를_정상적으로_등록한다() {
         // given
-        long todoId = 1;
+        long todoId = 1L;
         CommentSaveRequest request = new CommentSaveRequest("contents");
         AuthUser authUser = new AuthUser(1L, "email", UserRole.USER);
         User user = User.fromAuthUser(authUser);
-        Todo todo = new Todo("title", "title", "contents", user);
-        Comment comment = new Comment(request.getContents(), user, todo);
+
+        Todo todo = mock(Todo.class);
+
+        List<Manager> managers = new ArrayList<>();
+        Manager manager = new Manager(user, todo);
+        managers.add(manager);
 
         given(todoRepository.findById(anyLong())).willReturn(Optional.of(todo));
-        given(commentRepository.save(any())).willReturn(comment);
+
+        given(todo.getManagers()).willReturn(managers);
+//        doReturn(true).when(todo.getManagers()).contains(any(Manager.class));
+
+        Comment comment = new Comment(request.getContents(), user, todo);
+        given(commentRepository.save(any(Comment.class))).willReturn(comment);
 
         // when
         CommentSaveResponse result = commentService.saveComment(authUser, todoId, request);
 
         // then
         assertNotNull(result);
+    }
+
+    @Test
+    public void todo의_매니저가_아니라면_댓글을_등록하지_못함() {
+        // given
+        long todoId = 1L;
+        CommentSaveRequest request = new CommentSaveRequest("contents");
+        AuthUser authUser = new AuthUser(1L, "email", UserRole.USER);
+        User user = User.fromAuthUser(authUser);
+
+        Todo todo = mock(Todo.class);
+        List<Manager> managers = new ArrayList<>();
+        Manager manager = new Manager(user, todo);
+        managers.add(manager);
+
+        given(todoRepository.findById(anyLong())).willReturn(Optional.of(todo));
+
+        given(todo.getManagers()).willReturn(managers);
+
+        Comment comment = new Comment(request.getContents(), user, todo);
+        given(commentRepository.save(any(Comment.class))).willReturn(comment);
     }
 
     @Test
