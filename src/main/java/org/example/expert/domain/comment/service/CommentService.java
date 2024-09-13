@@ -33,10 +33,15 @@ public class CommentService {
         Todo todo = todoRepository.findById(todoId).orElseThrow(() ->
                 new InvalidRequestException("Todo not found"));
 
-        // authUser 가 todo 의 manager 인지 여부 확인
-        Manager manager = new Manager(user, todo);
-        // todo 의 담당자가 아니라면
-        if(!todo.getManagers().contains(manager)) {
+        List<Manager> managers = todo.getManagers();
+        boolean isManager = false;
+        for (Manager manager : managers) {
+            if(manager.getUser().getId().equals(user.getId())) {
+                isManager = true;
+            }
+        }
+
+        if(!isManager) {
             throw new InvalidRequestException("해당 할일의 담당자가 아닙니다.");
         }
 

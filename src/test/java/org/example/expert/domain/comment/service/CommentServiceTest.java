@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,13 +69,12 @@ class CommentServiceTest {
         Todo todo = mock(Todo.class);
 
         List<Manager> managers = new ArrayList<>();
-        Manager manager = new Manager(user, todo);
-        managers.add(manager);
+        Manager manger = new Manager(user, todo);
+        managers.add(manger);
 
         given(todoRepository.findById(anyLong())).willReturn(Optional.of(todo));
 
         given(todo.getManagers()).willReturn(managers);
-//        doReturn(true).when(todo.getManagers()).contains(any(Manager.class));
 
         Comment comment = new Comment(request.getContents(), user, todo);
         given(commentRepository.save(any(Comment.class))).willReturn(comment);
@@ -93,18 +93,23 @@ class CommentServiceTest {
         CommentSaveRequest request = new CommentSaveRequest("contents");
         AuthUser authUser = new AuthUser(1L, "email", UserRole.USER);
         User user = User.fromAuthUser(authUser);
+        User nonManagerUser = new User("test@email.com", "testPassword", UserRole.USER);
+        ReflectionTestUtils.setField(nonManagerUser, "id", 2L);
 
         Todo todo = mock(Todo.class);
         List<Manager> managers = new ArrayList<>();
-        Manager manager = new Manager(user, todo);
+        Manager manager = new Manager(nonManagerUser, todo);
         managers.add(manager);
 
         given(todoRepository.findById(anyLong())).willReturn(Optional.of(todo));
-
         given(todo.getManagers()).willReturn(managers);
 
-        Comment comment = new Comment(request.getContents(), user, todo);
-        given(commentRepository.save(any(Comment.class))).willReturn(comment);
+        // when
+        InvalidRequestException exception = assertThrows(InvalidRequestException.class,
+                () -> commentService.saveComment(authUser, todoId, request));
+
+        // then
+        assertEquals("해당 할일의 담당자가 아닙니다.", exception.getMessage());
     }
 
     @Test
