@@ -6,8 +6,6 @@ import lombok.NoArgsConstructor;
 import org.example.expert.domain.todo.entity.Todo;
 import org.example.expert.domain.user.entity.User;
 
-import java.util.Objects;
-
 @Getter
 @Entity
 @NoArgsConstructor
