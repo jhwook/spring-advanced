@@ -77,10 +77,8 @@ public class ManagerService {
     }
 
     @Transactional
-    public void deleteManager(String bearerToken, long todoId, long managerId) {
-
-        Claims claims = jwtUtil.extractClaims(bearerToken.substring(7));
-        long userId = Long.parseLong(claims.getSubject());
+    public void deleteManager(AuthUser authUser, long todoId, long managerId) {
+        long userId = authUser.getId();
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new InvalidRequestException("User not found"));

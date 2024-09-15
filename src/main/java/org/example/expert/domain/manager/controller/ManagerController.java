@@ -37,10 +37,10 @@ public class ManagerController {
 
     @DeleteMapping("/todos/{todoId}/managers/{managerId}")
     public void deleteManager(
-            @RequestHeader("Authorization") String bearerToken,
             @PathVariable long todoId,
-            @PathVariable long managerId
+            @PathVariable long managerId,
+            @Auth AuthUser authUser
     ) {
-        managerService.deleteManager(bearerToken, todoId, managerId);
+        managerService.deleteManager(authUser, todoId, managerId);
     }
 }
